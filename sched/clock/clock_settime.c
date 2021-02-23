@@ -67,7 +67,6 @@
 int clock_settime(clockid_t clock_id, FAR const struct timespec *tp)
 {
   struct timespec bias;
-  irqstate_t flags;
   int ret = OK;
 
   sinfo("clock_id=%d\n", clock_id);
@@ -80,12 +79,6 @@ int clock_settime(clockid_t clock_id, FAR const struct timespec *tp)
   if (clock_id == CLOCK_REALTIME)
     {
 #ifndef CONFIG_CLOCK_TIMEKEEPING
-      /* Interrupts are disabled here so that the in-memory time
-       * representation and the RTC setting will be as close as
-       * possible.
-       */
-
-      flags = enter_critical_section();
 
       /* Get the elapsed time since power up (in milliseconds).  This is a
        * bias value that we need to use to correct the base time.
@@ -122,8 +115,6 @@ int clock_settime(clockid_t clock_id, FAR const struct timespec *tp)
           up_rtc_settime(tp);
         }
 #endif
-
-      leave_critical_section(flags);
 
       sinfo("basetime=(%ld,%lu) bias=(%ld,%lu)\n",
             (long)g_basetime.tv_sec, (unsigned long)g_basetime.tv_nsec,
